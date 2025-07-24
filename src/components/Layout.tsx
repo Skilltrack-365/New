@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { UserRole } from '../types';
 import {
   Home,
   LayoutDashboard,
@@ -16,6 +17,11 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
+  Shield,
+  GraduationCap,
+  PlayCircle,
+  FileText,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -28,7 +34,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const navigation = [
+  // Admin Navigation - Full access to all features
+  const adminNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Labs', href: '/labs', icon: FlaskConical },
     { name: 'Equipment', href: '/equipment', icon: Settings },
@@ -38,11 +45,92 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Inventory', href: '/inventory', icon: Package },
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Users', href: '/users', icon: Users },
+    { name: 'Settings', href: '/settings', icon: Shield },
   ];
+
+  // Instructor Navigation - Course and lab management focused
+  const instructorNavigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Courses', href: '/courses', icon: BookOpen },
+    { name: 'Assignments', href: '/assignments', icon: ClipboardList },
+    { name: 'Labs', href: '/labs', icon: FlaskConical },
+    { name: 'Equipment', href: '/equipment', icon: Settings },
+    { name: 'Bookings', href: '/bookings', icon: Calendar },
+    { name: 'Reports', href: '/reports', icon: BarChart3 },
+  ];
+
+  // Student Navigation - Learning and lab access focused
+  const studentNavigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Courses', href: '/courses', icon: GraduationCap },
+    { name: 'Assignments', href: '/assignments', icon: ClipboardList },
+    { name: 'Lab Sessions', href: '/lab-sessions', icon: PlayCircle },
+    { name: 'Book Lab', href: '/bookings', icon: Calendar },
+    { name: 'Resources', href: '/resources', icon: FileText },
+  ];
+
+  // Lab Tech Navigation - Equipment and maintenance focused
+  const labTechNavigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Equipment', href: '/equipment', icon: Settings },
+    { name: 'Maintenance', href: '/maintenance', icon: Wrench },
+    { name: 'Inventory', href: '/inventory', icon: Package },
+    { name: 'Bookings', href: '/bookings', icon: Calendar },
+    { name: 'Labs', href: '/labs', icon: FlaskConical },
+  ];
+
+  // Get navigation based on user role
+  const getNavigation = () => {
+    switch (user?.role) {
+      case UserRole.ADMIN:
+        return adminNavigation;
+      case UserRole.INSTRUCTOR:
+        return instructorNavigation;
+      case UserRole.STUDENT:
+        return studentNavigation;
+      case UserRole.LAB_TECH:
+        return labTechNavigation;
+      default:
+        return studentNavigation; // Default to student view
+    }
+  };
+
+  const navigation = getNavigation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const getRoleDisplayName = (role: UserRole) => {
+    switch (role) {
+      case UserRole.ADMIN:
+        return 'Administrator';
+      case UserRole.INSTRUCTOR:
+        return 'Instructor';
+      case UserRole.STUDENT:
+        return 'Student';
+      case UserRole.LAB_TECH:
+        return 'Lab Technician';
+      default:
+        return 'User';
+    }
+  };
+
+  const getRoleColor = (role: UserRole) => {
+    switch (role) {
+      case UserRole.ADMIN:
+        return 'bg-red-600';
+      case UserRole.INSTRUCTOR:
+        return 'bg-green-600';
+      case UserRole.STUDENT:
+        return 'bg-blue-600';
+      case UserRole.LAB_TECH:
+        return 'bg-purple-600';
+      default:
+        return 'bg-gray-600';
+    }
   };
 
   return (
@@ -73,6 +161,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex-shrink-0 flex items-center px-4">
               <h1 className="text-xl font-bold text-gray-900">SmartLabs Pro</h1>
             </div>
+            {/* Role Badge */}
+            <div className="px-4 mt-4">
+              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white ${getRoleColor(user?.role || UserRole.STUDENT)}`}>
+                {getRoleDisplayName(user?.role || UserRole.STUDENT)}
+              </div>
+            </div>
             <nav className="mt-5 px-2 space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -97,10 +191,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <User className="h-5 w-5 text-white" />
-                </div>
+              <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${getRoleColor(user?.role || UserRole.STUDENT)}`}>
+                <User className="h-5 w-5 text-white" />
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700">{user?.name}</p>
@@ -117,6 +209,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
               <h1 className="text-xl font-bold text-gray-900">SmartLabs Pro</h1>
+            </div>
+            {/* Role Badge */}
+            <div className="px-4 mt-4">
+              <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white ${getRoleColor(user?.role || UserRole.STUDENT)}`}>
+                {getRoleDisplayName(user?.role || UserRole.STUDENT)}
+              </div>
             </div>
             <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
               {navigation.map((item) => {
@@ -141,22 +239,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <div className="flex items-center w-full">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <User className="h-5 w-5 text-white" />
-                </div>
+              <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${getRoleColor(user?.role || UserRole.STUDENT)}`}>
+                <User className="h-5 w-5 text-white" />
               </div>
               <div className="ml-3 flex-1">
                 <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.role}</p>
+                <p className="text-xs text-gray-500">{getRoleDisplayName(user?.role || UserRole.STUDENT)}</p>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="ml-2 p-1 rounded-md text-gray-400 hover:text-gray-600"
-                title="Sign out"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
+              <div className="ml-2 flex space-x-1">
+                <Link
+                  to="/profile"
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-600"
+                  title="Profile"
+                >
+                  <User className="h-4 w-4" />
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-600"
+                  title="Sign out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -176,6 +281,35 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <main className="flex-1">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              {/* Role-specific header message */}
+              {user?.role === UserRole.ADMIN && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex">
+                    <Shield className="h-5 w-5 text-red-400" />
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">Administrator View</h3>
+                      <p className="text-sm text-red-700 mt-1">
+                        You have full system access to manage labs, users, and content.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {user?.role === UserRole.STUDENT && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex">
+                    <GraduationCap className="h-5 w-5 text-blue-400" />
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">Student Portal</h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Access your courses, assignments, and book lab sessions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {children}
             </div>
           </div>

@@ -20,6 +20,8 @@ import MaintenancePage from './pages/MaintenancePage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
+import LabSessionsPage from './pages/LabSessionsPage';
+import ResourcesPage from './pages/ResourcesPage';
 
 // Detail Pages
 import LabDetailPage from './pages/details/LabDetailPage';
@@ -224,6 +226,26 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <ProfilePage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lab-sessions"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <LabSessionsPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ResourcesPage />
             </Layout>
           </ProtectedRoute>
         }
